@@ -1,20 +1,30 @@
 package com.rabobank.CustomerStatementProcessor.service.impl;
 
-import com.rabobank.CustomerStatementProcessor.model.Record;
+import com.rabobank.CustomerStatementProcessor.model.ErrorTransaction;
+import com.rabobank.CustomerStatementProcessor.model.Transaction;
 import com.rabobank.CustomerStatementProcessor.processor.FileProcessor;
 import com.rabobank.CustomerStatementProcessor.processor.impl.CSVFileProcessor;
 import com.rabobank.CustomerStatementProcessor.processor.impl.XMLFileProcessor;
 import com.rabobank.CustomerStatementProcessor.service.FileProcessorService;
+import com.rabobank.CustomerStatementProcessor.validator.DuplicateRecordValidator;
+import com.rabobank.CustomerStatementProcessor.validator.EndBalanceRecordValidator;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.text.NumberFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 public class FileProcessorServiceImpl implements FileProcessorService {
+
+    @Autowired
+    private EndBalanceRecordValidator endBalanceRecordValidator;
+
+    @Autowired
+    private DuplicateRecordValidator duplicateRecordValidator;
 
     private static final HashMap<String, FileProcessor> factoryProcessorMap = new HashMap<>(2);
 
@@ -24,15 +34,13 @@ public class FileProcessorServiceImpl implements FileProcessorService {
     }
 
     @Override
-    public void processFileInformation(MultipartFile requestedFile) {
+    public List<ErrorTransaction> processFileInformation(MultipartFile requestedFile) {
+
         String fileType = determineFileType(requestedFile);
-
         FileProcessor fileProcessor = factoryProcessorMap.get(fileType);
-        List<Record> processedList = fileProcessor.process(requestedFile);
-        log.info(processedList.toString());
-        List<Record> invalidTranscationList = validateTransactions(processedList);
-        getInvalidTransactions(invalidTranscationList);
-
+        List<Transaction> processedList = fileProcessor.process(requestedFile);
+        List<ErrorTransaction> invalidTranscationList = validateTransactions(processedList);
+        return invalidTranscationList;
     }
 
     private String determineFileType(MultipartFile requestedFile) {
@@ -42,84 +50,13 @@ public class FileProcessorServiceImpl implements FileProcessorService {
         return fileType.toUpperCase();
     }
 
-    private List<Record> validateTransactions(List<Record> transactionRecords) {
-        log.info("validateTransactions");
-        Map<Integer, List<Record>> transactionReferenceCountMap = new HashMap<>();
-        List<Record> incorrectTransactions = new ArrayList<>();
-        for (Record bo : transactionRecords) {
-            int transactionReference = bo.getReference();
-
-            if (transactionReferenceCountMap.containsKey(transactionReference)) {
-                transactionReferenceCountMap.get(transactionReference).add(bo);
-            } else {
-                addToExistingListForDuplicateTransaction(transactionReferenceCountMap, bo, transactionReference);
-            }
-
-            addIncorrectEndValueTransactionToMap(incorrectTransactions, bo, calculateEndBalance(bo));
-        }
-        addDuplicateTransactionToList(transactionReferenceCountMap, incorrectTransactions);
-        return incorrectTransactions;
-    }
-
-
-    private String getInvalidTransactions(List<Record> transactions) {
-        log.info("getInvalidTransactions");
-        StringBuilder sb = new StringBuilder();
-        System.out.println("FileProcessorServiceImpl.getInvalidTransactions --------"+transactions.size());
-        for (Record record : transactions) {
-            sb.append("Transaction reference number: ").append(record.getReference()).append(" , ")
-                    .append("Description is :").append(record.getDescription()).append("\n");
-        }
-        log.info("invalidTransactions \n" + sb.toString());
-        return sb.toString();
-    }
-
-    private void addToExistingListForDuplicateTransaction(Map<Integer, List<Record>> transactionReferenceCountMap, Record record,
-                                                          int transactionReference) {
-        List<Record> list = new ArrayList<>();
-        list.add(record);
-        transactionReferenceCountMap.put(transactionReference, list);
-    }
-
-    private void addIncorrectEndValueTransactionToMap(List<Record> incorrectTransactions, Record record, float endBalance) {
-        if (endBalance != record.getEndBalance()) {
-            incorrectTransactions.add(record);
-        }
-    }
-
-    private void addDuplicateTransactionToList(Map<Integer, List<Record>> transactionRefCount,
-                                               List<Record> incorrectTransactions) {
-        for (Map.Entry<Integer, List<Record>> entry : transactionRefCount.entrySet()) {
-            if (entry.getValue().size() > 1) {
-                incorrectTransactions.addAll(entry.getValue());
-            }
-        }
-    }
-
-    private float calculateEndBalance(Record bo) {
-        NumberFormat formatter = requiredNumberFormat();
-        float startBalance = bo.getStartBalance();
-        String mutation = bo.getMutation();
-        int length = mutation.length();
-        if (mutation.substring(0, 1).equals("-")) {
-            return deductiveMutation(formatter, startBalance, mutation, length);
-        } else
-            return additiveMutation(formatter, startBalance, mutation, length);
-    }
-
-    private Float additiveMutation(NumberFormat formatter, float startBalance, String mutation, int length) {
-        return new Float(formatter.format((startBalance + Float.parseFloat(mutation.substring(1, length)))));
-    }
-
-    private Float deductiveMutation(NumberFormat formatter, float startBalance, String mutation, int length) {
-        return new Float(formatter.format((startBalance - Float.parseFloat(mutation.substring(1, length)))));
-    }
-
-
-    private NumberFormat requiredNumberFormat() {
-        NumberFormat formatter = NumberFormat.getInstance(Locale.US);
-        formatter.setMinimumFractionDigits(2);
-        formatter.setGroupingUsed(false);
-        return formatter;
+    private List<ErrorTransaction> validateTransactions(List<Transaction> transactions) {
+        List<ErrorTransaction> errorTransactions = transactions.stream()
+                .map(x -> endBalanceRecordValidator.validate(x))
+                .flatMap(x -> x.stream())
+                .collect(Collectors.toList());
+        errorTransactions.addAll(duplicateRecordValidator.validate(transactions));
+        log.info(errorTransactions.toString());
+        return errorTransactions;
     }
 }

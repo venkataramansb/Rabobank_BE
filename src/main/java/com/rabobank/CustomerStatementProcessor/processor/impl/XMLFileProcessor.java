@@ -1,7 +1,7 @@
 package com.rabobank.CustomerStatementProcessor.processor.impl;
 
-import com.rabobank.CustomerStatementProcessor.model.Record;
-import com.rabobank.CustomerStatementProcessor.model.Records;
+import com.rabobank.CustomerStatementProcessor.model.Transaction;
+import com.rabobank.CustomerStatementProcessor.model.Transactions;
 import com.rabobank.CustomerStatementProcessor.processor.FileProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,23 +14,23 @@ import java.util.List;
 @Slf4j
 public class XMLFileProcessor implements FileProcessor {
     @Override
-    public List<Record> process(MultipartFile requestedFile) {
+    public List<Transaction> process(MultipartFile requestedFile) {
         log.info("Inside "+XMLFileProcessor.class + "process method");
-        Records records = constructRecordBOFromFile(requestedFile);
-        return records.getRecord();
+        Transactions transactions = constructRecordBOFromFile(requestedFile);
+        return transactions.getTransaction();
     }
 
-    private Records constructRecordBOFromFile(MultipartFile requestedFile) {
+    private Transactions constructRecordBOFromFile(MultipartFile requestedFile) {
         log.info("constructRecordBOFromFile");
-        Records records = null;
+        Transactions transactions = null;
         try {
             StringReader sr = new StringReader(new String(requestedFile.getBytes()));
-            JAXBContext jaxbContext = JAXBContext.newInstance(Records.class);
+            JAXBContext jaxbContext = JAXBContext.newInstance(Transactions.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            records = (Records) unmarshaller.unmarshal(sr);
+            transactions = (Transactions) unmarshaller.unmarshal(sr);
         } catch (Exception e) {
            log.info("constructRecordBOFromFile" + " -  " + "Exception " + e.getMessage());
         }
-        return records;
+        return transactions;
     }
 }

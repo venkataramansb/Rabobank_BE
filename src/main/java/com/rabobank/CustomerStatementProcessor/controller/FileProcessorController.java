@@ -2,6 +2,7 @@ package com.rabobank.CustomerStatementProcessor.controller;
 
 import com.rabobank.CustomerStatementProcessor.constants.ProcessorConstants;
 import com.rabobank.CustomerStatementProcessor.helper.ControllerHelper;
+import com.rabobank.CustomerStatementProcessor.model.ErrorTransaction;
 import com.rabobank.CustomerStatementProcessor.model.StatementProcessorResponse;
 import com.rabobank.CustomerStatementProcessor.service.FileProcessorService;
 import io.swagger.annotations.*;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(value = "/api/v1")
 @Slf4j
@@ -26,7 +29,7 @@ public class FileProcessorController {
     @Autowired
     private FileProcessorService fileProcessorService;
 
-    @ApiOperation(value = "Process Customer Records in File", notes = "Returns a report which will display both the transaction reference and description of each of the failed records.")
+    @ApiOperation(value = "Process Customer Transactions in File", notes = "Returns a report which will display both the transaction reference and description of each of the failed records.")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Username", paramType = "Basic Authentication", value = "rabobank", required = true, dataType = "String"),
             @ApiImplicitParam(name = "Password", paramType = "Basic Authentication", value = "rabobank", required = true, dataType = "String")
@@ -44,15 +47,23 @@ public class FileProcessorController {
         if (!controllerHelper.validateFileFormat(file))
             return constructInvalidFileFormatResponse();
 
-        fileProcessorService.processFileInformation(file);
+        List<ErrorTransaction> errorTransactions = fileProcessorService.processFileInformation(file);
+        return constructSuccessFileFormatResponse(errorTransactions);
+    }
 
-
-        return ResponseEntity.ok().build();
+    private ResponseEntity<StatementProcessorResponse> constructSuccessFileFormatResponse(List<ErrorTransaction> errorTransactions) {
+        return ResponseEntity.ok().body(StatementProcessorResponse.builder()
+                .status(ProcessorConstants.SUCCESS_FILE_FORMAT_CODE)
+                .decription(ProcessorConstants.COMPLETED_FILE_FORMAT_MSG)
+                .errorTransactions(errorTransactions)
+                .build());
     }
 
     private ResponseEntity<StatementProcessorResponse> constructInvalidFileFormatResponse() {
-        return ResponseEntity.ok().body(StatementProcessorResponse.builder().status(ProcessorConstants.INVALID_FILE_FORMAT)
-                .decription(ProcessorConstants.UNSUPORTED_FILE_FORMAT).build());
+        return ResponseEntity.ok().body(StatementProcessorResponse.builder()
+                .status(ProcessorConstants.INVALID_FILE_FORMAT_CODE)
+                .decription(ProcessorConstants.UNSUPORTED_FILE_FORMAT_MSG)
+                .build());
 
     }
 }

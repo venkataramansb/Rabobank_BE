@@ -5,13 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class StatementProcessorResponse {
 
-    private String decription;
-    private int transactionReference;
     private int status;
+    private String decription;
+    private List<ErrorTransaction> errorTransactions;
 }

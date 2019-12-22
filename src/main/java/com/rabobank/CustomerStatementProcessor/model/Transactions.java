@@ -17,8 +17,8 @@ import java.util.List;
 @EqualsAndHashCode
 @XmlRootElement(name="records")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Records {
+public class Transactions {
 
 	@XmlElement(name="record")
-	List<Record> record;
+	List<Transaction> transaction;
 }

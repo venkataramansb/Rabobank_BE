@@ -48,6 +48,7 @@ public class FileProcessorController {
             return constructInvalidFileFormatResponse();
 
         List<ErrorTransaction> errorTransactions = fileProcessorService.processFileInformation(file);
+        log.info("Exit into processFile");
         return constructSuccessFileFormatResponse(errorTransactions);
     }
 

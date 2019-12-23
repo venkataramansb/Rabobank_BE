@@ -35,28 +35,31 @@ public class FileProcessorServiceImpl implements FileProcessorService {
 
     @Override
     public List<ErrorTransaction> processFileInformation(MultipartFile requestedFile) {
-
+        log.info("Entering into processFileInformation" + requestedFile.getName());
         String fileType = determineFileType(requestedFile);
         FileProcessor fileProcessor = factoryProcessorMap.get(fileType);
         List<Transaction> processedList = fileProcessor.process(requestedFile);
         List<ErrorTransaction> invalidTranscationList = validateTransactions(processedList);
+        log.info("Exit into processFileInformation " + this.getClass().getName());
         return invalidTranscationList;
     }
 
     private String determineFileType(MultipartFile requestedFile) {
-        log.info("determineFileType");
+        log.info("Entering into determineFileType " + this.getClass().getName());
         String fileName = requestedFile.getOriginalFilename();
         String fileType = fileName.substring(fileName.length() - 3);
         return fileType.toUpperCase();
     }
 
     private List<ErrorTransaction> validateTransactions(List<Transaction> transactions) {
+        log.info("Entering into validateTransactions " + this.getClass().getName());
         List<ErrorTransaction> errorTransactions = transactions.stream()
                 .map(x -> endBalanceRecordValidator.validate(x))
                 .flatMap(x -> x.stream())
                 .collect(Collectors.toList());
         errorTransactions.addAll(duplicateRecordValidator.validate(transactions));
-        log.info(errorTransactions.toString());
+        log.info("Exit into validateTransactions " + this.getClass().getName());
+
         return errorTransactions;
     }
 }

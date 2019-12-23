@@ -16,12 +16,12 @@ public class XMLFileProcessor implements FileProcessor {
     @Override
     public List<Transaction> process(MultipartFile requestedFile) {
         log.info("Inside "+XMLFileProcessor.class + "process method");
-        Transactions transactions = constructRecordBOFromFile(requestedFile);
+        Transactions transactions = constructTransactionFromFile(requestedFile);
         return transactions.getTransaction();
     }
 
-    private Transactions constructRecordBOFromFile(MultipartFile requestedFile) {
-        log.info("constructRecordBOFromFile");
+    private Transactions constructTransactionFromFile(MultipartFile requestedFile) {
+        log.info("Entering into constructTransactionFromFile " +this.getClass().getCanonicalName());
         Transactions transactions = null;
         try {
             StringReader sr = new StringReader(new String(requestedFile.getBytes()));
@@ -29,8 +29,10 @@ public class XMLFileProcessor implements FileProcessor {
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             transactions = (Transactions) unmarshaller.unmarshal(sr);
         } catch (Exception e) {
-           log.info("constructRecordBOFromFile" + " -  " + "Exception " + e.getMessage());
+           log.info("constructTransactionFromFile" + " -  " + "Exception " + e.getMessage());
         }
+        log.info("Exit into constructTransactionFromFile " +this.getClass().getCanonicalName());
+
         return transactions;
     }
 }

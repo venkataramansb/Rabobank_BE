@@ -12,21 +12,22 @@ import java.util.List;
 public class CSVFileProcessor implements FileProcessor {
     @Override
     public List<Transaction> process(MultipartFile requestedFile) {
-        log.info("Inside " + CSVFileProcessor.class + "process method");
+        log.info("Entering into process " +this.getClass().getCanonicalName());
         List<Transaction> transactions = new ArrayList<>();
         try {
             String[] arrayOfRecord = new String(requestedFile.getBytes()).split("[\\r\\n]+");
-            transactions = constructRecordBOFromFile(arrayOfRecord);
+            transactions = constructTransactionFromFile(arrayOfRecord);
 
         } catch (Exception e) {
             log.error("process" + " -  " + "Exception " + e.getMessage());
             //  return "Error while processing the csv file " + e.getMessage();
         }
+        log.info("Exit into process " +this.getClass().getCanonicalName());
         return transactions;
     }
 
-    private List<Transaction> constructRecordBOFromFile(String[] arrayOfRecord) {
-        log.info("constructRecordBOFromFile");
+    private List<Transaction> constructTransactionFromFile(String[] arrayOfRecord) {
+        log.info("Entering into constructTransactionFromFile " +this.getClass().getCanonicalName());
         List<Transaction> transactions = new ArrayList<>();
         for (int x = 1; x < arrayOfRecord.length; x++) {
             String[] record = arrayOfRecord[x].split(",");
@@ -41,6 +42,8 @@ public class CSVFileProcessor implements FileProcessor {
             }
             transactions.add(rec);
         }
+        log.info("Exit into constructTransactionFromFile " +this.getClass().getCanonicalName());
+
         return transactions;
     }
 }

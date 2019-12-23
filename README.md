@@ -46,6 +46,8 @@ Adding Authentication
 In the Body tab, add a key named 'file' and choose the file that needs to be processed a shown in the image below.
 Adding file
 
-Send the request and the resulting JSON will be returned as shown in the image below.
+Send the request and the resulting JSON will be returned as shown in the below folder.
 Adding file
+
+https://github.com/venkataramansb/Rabobank_BE/blob/master/postman
 

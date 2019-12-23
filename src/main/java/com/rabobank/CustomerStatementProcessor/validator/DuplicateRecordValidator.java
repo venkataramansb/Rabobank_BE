@@ -17,7 +17,7 @@ public class DuplicateRecordValidator {
     private List<DuplicateValidator> validators;
 
     public List<ErrorTransaction> validate(List<Transaction> transactions) {
-        return this.validators.stream()
+        return validators.stream()
                 .map(x -> x.validate(transactions))
                 .flatMap(x -> x.stream())
                 .filter(x -> x != null)

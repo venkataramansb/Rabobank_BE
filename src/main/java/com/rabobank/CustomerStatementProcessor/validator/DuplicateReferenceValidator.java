@@ -26,7 +26,6 @@ public class DuplicateReferenceValidator implements DuplicateValidator {
                 transaction -> {
                     final int reference = transaction.getReference();
                     List<Transaction> appendedList = Lists.newArrayList(transaction);
-                    appendedList.add(transaction);
                     if (transactionMap.containsKey(reference)) {
                         appendedList.addAll(transactionMap.get(reference));
                         duplicates.add(reference);

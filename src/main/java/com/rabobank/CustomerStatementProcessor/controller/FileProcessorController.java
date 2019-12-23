@@ -42,7 +42,7 @@ public class FileProcessorController {
             @ApiResponse(code = 404, message = "Not Found")})
     @PostMapping(value = "/processFile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StatementProcessorResponse> processFile(@RequestParam(required = true) MultipartFile file) {
-        log.info("Entering into processFile" + " -  " + file.getOriginalFilename());
+        log.info("Entering into processFile");
 
         if (!controllerHelper.validateFileFormat(file))
             return constructInvalidFileFormatResponse();

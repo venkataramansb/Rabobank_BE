@@ -49,3 +49,6 @@ Adding file
 Send the request and the resulting JSON will be returned as shown in the image below.
 Adding file
 
+![GitHub Logo](/postman/Credentials_Capturing.png)
+Format: ![Alt Text](url)
+

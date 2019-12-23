@@ -49,5 +49,5 @@ Adding file
 Send the request and the resulting JSON will be returned as shown in the image below.
 Adding file
 
-https://github.com/venkataramansb/Rabobank_BE/blob/master/postman/Credentials_Capturing.PNG
+https://github.com/venkataramansb/Rabobank_BE/blob/master/postman
 
